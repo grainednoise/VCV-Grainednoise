@@ -1,0 +1,25 @@
+{
+  "slug": "Grainednoise",
+  "name": "Grainednoise",
+  "version": "1.0.0",
+  "license": "MIT",
+  "brand": "Grainednoise",
+  "author": "grainednoise",
+  "authorEmail": "grainednoise@gmail.com",
+  "authorUrl": "",
+  "pluginUrl": "",
+  "manualUrl": "",
+  "sourceUrl": "",
+  "donateUrl": "",
+  "changelogUrl": "",
+  "modules": [
+    {
+      "slug": "Berlin",
+      "name": "Berlin",
+      "description": "",
+      "tags": [
+        "noise"
+      ]
+    }
+  ]
+}
