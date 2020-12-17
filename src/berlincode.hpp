@@ -19,6 +19,8 @@ class Noise2D {
         void setSeed(unsigned long seed, bool forceRecalc=false);
 
         float getValue(float x, float y);
+        float getLinearValue(float x, float y);
+        float getLanczos2Value(float x, float y);
 
     private:
         int xSize;

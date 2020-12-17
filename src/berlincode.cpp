@@ -22,11 +22,11 @@ int Noise2D::getYSize() {
 }
 
 void Noise2D::setXSize(int xSize) {
-    this->xSize = std::min(std::max(xSize, Noise2D::MIN_SIZE), Noise2D::MAX_SIZE);
+    this->xSize = std::clamp(xSize, Noise2D::MIN_SIZE, Noise2D::MAX_SIZE);
 }
 
 void Noise2D::setYSize(int ySize) {
-    this->ySize = std::min(std::max(ySize, Noise2D::MIN_SIZE), Noise2D::MAX_SIZE);
+    this->ySize = std::clamp(ySize, Noise2D::MIN_SIZE, Noise2D::MAX_SIZE);
 }
 
 void Noise2D::setSeed(unsigned long seed, bool forceRecalc) {
@@ -49,7 +49,7 @@ void Noise2D::recalculate() {
 
 }
 
- std::tuple<double,int> interpAddress(double value, double size) {
+ inline std::tuple<double,int> interpAddress(double value, double size) {
     //Scale to 0..1 range
     double fracFalue = value - floor(value);
 
@@ -62,7 +62,61 @@ void Noise2D::recalculate() {
     return std::make_tuple(float_part, index);
 }
 
-float Noise2D::getArrayValue(int x, int y) {
+const float PI = 3.141592653589793;
+const float PI_SQUARED = PI * PI;
+
+float lanczos2Kernel(const float value) {
+    if (value == 0.0) {
+        return 1.0;
+    }
+
+    if (value > 2.0 || value < -2.0) {
+        return 0.0;
+    }
+
+    float piV = value * PI;
+
+    return 2.0 * sin(piV) * sin(piV / 2) / PI_SQUARED / value / value;
+}
+
+/*
+    This is an appoximation of the Lancszos function, as the actual function
+    runs much too slowly, presumably because of the two sine() fuctions.
+
+    This implementation is fast, but not terribly accurate. It uses a piecewise
+    order 3 polynomial approximation of the squared input value.
+
+
+*/
+inline const float fastLanczsos2Kernel(const float value) {
+    float squared = value * value;
+
+    if (squared < 0.51) {
+        float x1 = squared;
+        float x2 = x1 * x1;
+        float x3 = x2 * x1;
+        return 1.0 - 2.0561 * x1 + 1.59 * x2 -0.63 * x3;
+    }
+
+    if (squared < 1.890) {
+        float x1 = squared - 1.6;
+        float x2 = x1 * x1;
+        float x3 = x2 * x1;
+        return -0.08325 + 0.139 * x2 - 0.154 * x3;
+    }
+
+    if (squared < 4.0) {
+        float x1 = squared - 4.0;
+        float x2 = x1 * x1;
+        float x3 = x2 * x1;
+        return -0.028 * x2 - 0.0053 * x3;
+    }
+
+    return 0.0;
+}
+
+
+inline float Noise2D::getArrayValue(int x, int y) {
     int realX = (x + 16 * xSize) % xSize;
     if (realX < 0) {
         return 0.0;
@@ -77,6 +131,11 @@ float Noise2D::getArrayValue(int x, int y) {
 }
 
 float Noise2D::getValue(float x, float y) {
+    // return getLinearValue(x, y);
+    return getLanczos2Value(x, y);
+}
+
+float Noise2D::getLinearValue(float x, float y) {
     double fracX;
     int indexX;
 
@@ -91,6 +150,30 @@ float Noise2D::getValue(float x, float y) {
            getArrayValue(indexX + 1, indexY) * fracX * (1 - fracY) + 
            getArrayValue(indexX, indexY + 1) * (1 - fracX) * fracY +
            getArrayValue(indexX + 1, indexY + 1) * fracX * fracY;
+}
+
+float Noise2D::getLanczos2Value(float x, float y) {
+    double fracX;
+    int indexX;
+
+    std::tie (fracX, indexX) = interpAddress(x, (double)xSize);
+
+    double fracY;
+    int indexY;
+
+    std::tie (fracY, indexY) = interpAddress(y, (double)ySize);
+
+    float accu = 0.0;
+
+    for (int dx = -1; dx <= 2; dx++) {
+        float kernX = fastLanczsos2Kernel(fracX - dx);
+        for (int dy = -1; dy <= 2; dy++) {
+            // accu += getArrayValue(indexX + dx, indexY + dy) * lanczos2Kernel(fracX - dx) * lanczos2Kernel(fracY - dy);
+            accu += getArrayValue(indexX + dx, indexY + dy) * kernX * fastLanczsos2Kernel(fracY - dy);
+        }
+    }
+
+    return accu;
 }
 
 
@@ -111,56 +194,18 @@ void NoiseDisplay::drawFramebuffer() {
         return;
     }
 
-	glBegin(GL_QUADS);
+    for (float yCo = 0.0; yCo < fbSize.y; yCo += 1.0) {
+        glBegin(GL_LINE_STRIP);
+        for (float xCo = 0.0; xCo < fbSize.x; xCo += 1.0) {
+            float xAddr = xCo / fbSize.x;
+            float yAddr = yCo / fbSize.y;
 
-    int xSize = noiseGen->getXSize();
-    int ySize = noiseGen->getYSize();
-    
-    INFO("Doing NoiseDisplay %d x %d", xSize, ySize);
+            float colVal = noiseGen->getValue(xAddr, yAddr);
+            glColor3f(colVal, colVal, colVal);
+            glVertex3f(xCo, yCo, 0);
 
-    for (int x = 0; x <= xSize; x++) {
-        float addrX = (float)x / (float)xSize;
-        float addrXNext = (float)(x + 1) / (float)xSize;
-
-        float xCo0 = addrX * fbSize.x;
-        float xCo1 = addrXNext * fbSize.x;
-
-        for (int y = 0; y <= ySize; y++) {
-            float addrY = (float)y / (float)ySize;
-            float addrYNext = (float)(y + 1) / (float)ySize;
-
-            float yCo0 = addrY * fbSize.y;
-            float yCo1 = addrYNext * fbSize.y;
-
-            if (x < xSize && y < ySize) {
-                float bwVal00 = noiseGen->getValue(addrX, addrY);
-                INFO("Calc X %d=%g, Y %d=%g = V %g", x, addrX, y, addrY, bwVal00);
-                glColor3f(bwVal00, bwVal00, bwVal00);
-                glVertex3f(xCo0, yCo0, 0);
-
-                float bwVal10 = noiseGen->getValue(addrXNext, addrY);
-                glColor3f(bwVal10, bwVal10, bwVal10);
-                glVertex3f(xCo1, yCo0, 0);
-
-                float bwVal11 = noiseGen->getValue(addrXNext, addrYNext);
-                glColor3f(bwVal11, bwVal11, bwVal11);
-                glVertex3f(xCo1, yCo1, 0);
-
-                float bwVal01 = noiseGen->getValue(addrX, addrYNext);
-                glColor3f(bwVal01, bwVal01, bwVal01);
-                glVertex3f(xCo0, yCo1, 0);
-
-
-            }
         }
+        glEnd();
     }
- 
 
-	// glColor3f(0.5, 0.5, 0.5);
-	// glVertex3f(0, 0, 0);
-	// glColor3f(0, 1, 0);
-	// glVertex3f(fbSize.x, 0, 0);
-	// glColor3f(0, 0, 1);
-	// glVertex3f(0, fbSize.y, 0);
-	glEnd();
 }

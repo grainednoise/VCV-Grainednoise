@@ -54,6 +54,12 @@ struct Berlin : Module {
 	}
 };
 
+struct GnoiseNormalKnob : RoundKnob {
+	GnoiseNormalKnob() {
+		setSvg(APP->window->loadSvg(asset::plugin(pluginInstance, "res/gn_knob.svg")));
+		shadow->opacity = 0.0;
+	}
+};
 
 struct BerlinWidget : ModuleWidget {
 	BerlinWidget(Berlin* module) {
@@ -65,11 +71,11 @@ struct BerlinWidget : ModuleWidget {
 		addChild(createWidget<ScrewBlack>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 		addChild(createWidget<ScrewBlack>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 
-		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(9.154, 71.962)), module, Berlin::XSIZE_PARAM));
-		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(25.725, 71.962)), module, Berlin::YSIZE_PARAM));
+		addParam(createParamCentered<GnoiseNormalKnob>(mm2px(Vec(9.154, 71.962)), module, Berlin::XSIZE_PARAM));
+		addParam(createParamCentered<GnoiseNormalKnob>(mm2px(Vec(25.725, 71.962)), module, Berlin::YSIZE_PARAM));
 		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(42.295, 71.962)), module, Berlin::SEED_PARAM));
-		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(9.154, 90.872)), module, Berlin::XSCALE_PARAM));
-		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(25.725, 91.072)), module, Berlin::YSCALE_PARAM));
+		addParam(createParamCentered<GnoiseNormalKnob>(mm2px(Vec(9.154, 90.872)), module, Berlin::XSCALE_PARAM));
+		addParam(createParamCentered<GnoiseNormalKnob>(mm2px(Vec(25.725, 91.072)), module, Berlin::YSCALE_PARAM));
 
 		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(9.288, 109.781)), module, Berlin::XCOORDINATE_INPUT));
 		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(25.792, 109.781)), module, Berlin::YCOORDINATE_INPUT));
