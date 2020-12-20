@@ -16,7 +16,7 @@ class Noise2D {
         int getYSize();
         void setXSize(int xSize); 
         void setYSize(int ySize); 
-        void setSeed(unsigned long seed, bool forceRecalc=false);
+        void setSeed(unsigned long seed);
 
         float getValue(float x, float y);
         float getLinearValue(float x, float y);
@@ -36,13 +36,14 @@ class Noise2D {
 
 class NoiseDisplay : public OpenGlWidget {
     public:
-        // void setNoiseGen(Noise2D *noiseGen);
-        void setNoiseGen(std::shared_ptr<Noise2D> noiseGen);
+        virtual ~NoiseDisplay();
+        void setNoiseGen(Noise2D *noiseGen);
+        // void setNoiseGen(std::shared_ptr<Noise2D> noiseGen);
         
 
     private:
-        // Noise2D *noiseGen;
-        std::shared_ptr<Noise2D> noiseGen;
+        Noise2D *noiseGen;
+        // std::shared_ptr<Noise2D> noiseGen;
     
         void drawFramebuffer() override;
 };

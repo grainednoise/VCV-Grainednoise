@@ -1,5 +1,7 @@
 #include "plugin.hpp"
 #include "berlincode.hpp"
+#include "ParamQuantityModel.hpp"
+#include "NumberWidget.hpp"
 
 
 struct Berlin : Module {
@@ -24,29 +26,43 @@ struct Berlin : Module {
 		NUM_LIGHTS
 	};
 
-	std::shared_ptr<Noise2D> noiseGen;
+	const int CONTROL_CHANGE_RATE_DIVISOR = 20;
+	int controlChangeCounter = CONTROL_CHANGE_RATE_DIVISOR;
+	float currentXScale = 0.0;
+	float currentYScale = 0.0;
+
+	// std::shared_ptr<Noise2D> noiseGen;
+	Noise2D *noiseGen;
 
 	Berlin() {
 		config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
 		configParam(XSIZE_PARAM, 2.f, 16.f, 4.f, "X Size of random array");
 		configParam(YSIZE_PARAM, 2.f, 16.f, 4.f, "Y size of random array");
-		configParam(SEED_PARAM, 1.f, 9999.f, 1.f, "Random number seed");
-		configParam(XSCALE_PARAM, 0.f, 2.f, 1.f, "X-scale, a straight multiplier");
-		configParam(YSCALE_PARAM, 0.f, 2.f, 1.f, "Y-scale, a straight multiplier");
-		noiseGen = std::make_shared<Noise2D>();
+		configParam<ParamQuantityModel>(SEED_PARAM, 1.f, 9999999.f, 1.f, "Random number seed");
+		configParam(XSCALE_PARAM, 0.f, 2.f, 1.f, "X-scale multiplies input");
+		configParam(YSCALE_PARAM, 0.f, 2.f, 1.f, "Y-scale multiplies input");
+		// noiseGen = std::make_shared<Noise2D>();
+		noiseGen = new Noise2D;
 	}
 
 	void process(const ProcessArgs& args) override {
-		int xSize = (int)round(params[XSIZE_PARAM].getValue());
-		int ySize = (int)round(params[YSIZE_PARAM].getValue());
-		unsigned long seed = (unsigned long)round(params[SEED_PARAM].getValue());
+		if (++controlChangeCounter > CONTROL_CHANGE_RATE_DIVISOR) {
+			controlChangeCounter = 0;
 
-		noiseGen->setYSize(ySize);
-		noiseGen->setXSize(xSize);
-		noiseGen->setSeed(seed);
+			int xSize = (int)round(params[XSIZE_PARAM].getValue());
+			int ySize = (int)round(params[YSIZE_PARAM].getValue());
+			unsigned long seed = (unsigned long)round(params[SEED_PARAM].getValue());
 
-		float xCoordinate = inputs[XCOORDINATE_INPUT].getVoltage() * params[XSCALE_PARAM].getValue();
-		float yCoordinate = inputs[YCOORDINATE_INPUT].getVoltage() * params[YSCALE_PARAM].getValue();
+			noiseGen->setYSize(ySize);
+			noiseGen->setXSize(xSize);
+			noiseGen->setSeed(seed);
+
+			currentXScale = params[XSCALE_PARAM].getValue();
+			currentYScale = params[YSCALE_PARAM].getValue();
+		}
+
+		float xCoordinate = inputs[XCOORDINATE_INPUT].getVoltage() * currentXScale;
+		float yCoordinate = inputs[YCOORDINATE_INPUT].getVoltage() * currentYScale;
 
 		float output = noiseGen->getValue(xCoordinate, yCoordinate);
 
@@ -56,13 +72,26 @@ struct Berlin : Module {
 
 struct GnoiseNormalKnob : RoundKnob {
 	GnoiseNormalKnob() {
-		setSvg(APP->window->loadSvg(asset::plugin(pluginInstance, "res/gn_knob.svg")));
+		if (pluginInstance) {
+			setSvg(APP->window->loadSvg(asset::plugin(pluginInstance, "res/gn_knob.svg")));
+		}
 		shadow->opacity = 0.0;
+	}
+};
+
+struct GnPlusButton : app::SvgSwitch {
+	GnPlusButton() {
+		momentary = false;
+		shadow->opacity = 0.0;
+		if (pluginInstance) {
+			addFrame(APP->window->loadSvg(asset::plugin(pluginInstance, "res/gn_btn_up.svg")));
+		}
 	}
 };
 
 struct BerlinWidget : ModuleWidget {
 	BerlinWidget(Berlin* module) {
+		WARN("Creating BERLIN widget %d", module);
 		setModule(module);
 		setPanel(APP->window->loadSvg(asset::plugin(pluginInstance, "res/berlin.svg")));
 
@@ -73,7 +102,7 @@ struct BerlinWidget : ModuleWidget {
 
 		addParam(createParamCentered<GnoiseNormalKnob>(mm2px(Vec(9.154, 71.962)), module, Berlin::XSIZE_PARAM));
 		addParam(createParamCentered<GnoiseNormalKnob>(mm2px(Vec(25.725, 71.962)), module, Berlin::YSIZE_PARAM));
-		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(42.295, 71.962)), module, Berlin::SEED_PARAM));
+		addParam(createParamCentered<GnPlusButton>(mm2px(Vec(19, 59)), module, Berlin::SEED_PARAM));
 		addParam(createParamCentered<GnoiseNormalKnob>(mm2px(Vec(9.154, 90.872)), module, Berlin::XSCALE_PARAM));
 		addParam(createParamCentered<GnoiseNormalKnob>(mm2px(Vec(25.725, 91.072)), module, Berlin::YSCALE_PARAM));
 
@@ -86,12 +115,27 @@ struct BerlinWidget : ModuleWidget {
 		//addChild(createWidget<Widget>(mm2px(Vec(4.143, 12.027))));
 
 		NoiseDisplay *ndisp = new NoiseDisplay;
-		ndisp->setNoiseGen(module->noiseGen);
+
+		if (module) {
+			ndisp->setNoiseGen(module->noiseGen);
+		}
+		// // ndisp->setNoiseGen(std::make_shared<Noise2D>());
 		ndisp->box.pos =  mm2px(Vec(4.143, 12.027));
 		ndisp->box.size = mm2px(Vec(42.763, 42.763));
-		//addChild(createWidget<NoiseDisplay>(mm2px(Vec(4.143, 12.027))));
 		addChild(ndisp);
+
+
+		//When displayed in the module browser, 'module' will be NULL
+		ParamQuantityModel *pq = module ? dynamic_cast<ParamQuantityModel *>(module->paramQuantities[Berlin::SEED_PARAM]) : NULL;
+
+		NumberWidget *seedText = new NumberWidget(pq);
+		seedText->box.pos = mm2px(Vec(23, 56));
+		seedText->box.size = mm2px(Vec(24, 6.7));
+		seedText->color = NVGcolor{1.0, 1.0, 1.0, 1.0};
+		seedText->textOffset = Vec{0, 0};
+		addChild(seedText);
 	}
+
 };
 
 

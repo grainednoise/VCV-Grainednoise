@@ -10,9 +10,14 @@ const int Noise2D::MAX_SIZE = 16;
  Noise2D::Noise2D() : randgen(0) {
      setXSize(2);
      setYSize(2);
-     setSeed(0, true);
+     setSeed(0);
+     recalculate();
  }
 
+template<class T>
+const T& clamp(const T& x, const T& upper, const T& lower) {
+    return min(upper, max(x, lower));
+}
 
 int Noise2D::getXSize() {
     return xSize;
@@ -22,40 +27,39 @@ int Noise2D::getYSize() {
 }
 
 void Noise2D::setXSize(int xSize) {
-    this->xSize = std::clamp(xSize, Noise2D::MIN_SIZE, Noise2D::MAX_SIZE);
+    this->xSize = clamp(xSize, Noise2D::MIN_SIZE, Noise2D::MAX_SIZE);
 }
 
 void Noise2D::setYSize(int ySize) {
-    this->ySize = std::clamp(ySize, Noise2D::MIN_SIZE, Noise2D::MAX_SIZE);
+    this->ySize = clamp(ySize, Noise2D::MIN_SIZE, Noise2D::MAX_SIZE);
 }
 
-void Noise2D::setSeed(unsigned long seed, bool forceRecalc) {
-    bool recalc = forceRecalc || this->seed != seed;
-    this->seed = seed;
-    if (recalc) {
+void Noise2D::setSeed(unsigned long seed) {
+    if (this->seed != seed) {
+        this->seed = seed;
         recalculate();
     }
 }
 
 void Noise2D::recalculate() {
     randgen.setSeed(seed);
+    INFO("Recalculating noise samples");
 
     for (int x = 0; x < Noise2D::MAX_SIZE; x++) {
         for (int y = 0; y < Noise2D::MAX_SIZE; y++) {
             noise[x][y] = randgen.float_uniform();
-            INFO("noise[%d][%d] = %g", x, y, noise[x][y]);
         }
     }
 
 }
 
- inline std::tuple<double,int> interpAddress(double value, double size) {
+ inline std::tuple<double,int> interpAddress(float value, float size) {
     //Scale to 0..1 range
-    double fracFalue = value - floor(value);
+    float fracFalue = value - floor(value);
 
-    double scaled = fracFalue * size;
-    double intPart;
-    double float_part = modf(scaled, &intPart);
+    float scaled = fracFalue * size;
+    float intPart;
+    float float_part = modf(scaled, &intPart);
 
     int index = (int)round(fmod(intPart, size));
 
@@ -88,7 +92,7 @@ float lanczos2Kernel(const float value) {
 
 
 */
-inline const float fastLanczsos2Kernel(const float value) {
+inline float fastLanczsos2Kernel(const float value) {
     float squared = value * value;
 
     if (squared < 0.51) {
@@ -164,12 +168,18 @@ float Noise2D::getLanczos2Value(float x, float y) {
     std::tie (fracY, indexY) = interpAddress(y, (double)ySize);
 
     float accu = 0.0;
+    float yKernel4[4];
+     for (int dy = -1; dy <= 2; dy++) {
+        yKernel4[dy + 1] = fastLanczsos2Kernel(fracY - dy);
+    }
+
 
     for (int dx = -1; dx <= 2; dx++) {
         float kernX = fastLanczsos2Kernel(fracX - dx);
         for (int dy = -1; dy <= 2; dy++) {
             // accu += getArrayValue(indexX + dx, indexY + dy) * lanczos2Kernel(fracX - dx) * lanczos2Kernel(fracY - dy);
-            accu += getArrayValue(indexX + dx, indexY + dy) * kernX * fastLanczsos2Kernel(fracY - dy);
+            // accu += getArrayValue(indexX + dx, indexY + dy) * kernX * fastLanczsos2Kernel(fracY - dy);
+            accu += getArrayValue(indexX + dx, indexY + dy) * kernX * yKernel4[dy + 1];
         }
     }
 
@@ -177,35 +187,48 @@ float Noise2D::getLanczos2Value(float x, float y) {
 }
 
 
-void NoiseDisplay::setNoiseGen(std::shared_ptr<Noise2D> noiseGen) {
+// void NoiseDisplay::setNoiseGen(std::shared_ptr<Noise2D> noiseGen) {
+//     this->noiseGen = noiseGen;
+// }
+
+void NoiseDisplay::setNoiseGen(Noise2D *noiseGen) {
     this->noiseGen = noiseGen;
 }
 
 void NoiseDisplay::drawFramebuffer() {
-	glViewport(0.0, 0.0, fbSize.x, fbSize.y);
-	glClearColor(0.0, 0.0, 0.0, 1.0);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+    try {
+        glViewport(0.0, 0.0, fbSize.x, fbSize.y);
+        glClearColor(0.0, 0.0, 0.0, 1.0);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	glOrtho(0.0, fbSize.x, 0.0, fbSize.y, -1.0, 1.0);
+        glMatrixMode(GL_PROJECTION);
+        glLoadIdentity();
+        glOrtho(0.0, fbSize.x, 0.0, fbSize.y, -1.0, 1.0);
 
-   if (noiseGen == nullptr) {
-        return;
-    }
-
-    for (float yCo = 0.0; yCo < fbSize.y; yCo += 1.0) {
-        glBegin(GL_LINE_STRIP);
-        for (float xCo = 0.0; xCo < fbSize.x; xCo += 1.0) {
-            float xAddr = xCo / fbSize.x;
-            float yAddr = yCo / fbSize.y;
-
-            float colVal = noiseGen->getValue(xAddr, yAddr);
-            glColor3f(colVal, colVal, colVal);
-            glVertex3f(xCo, yCo, 0);
-
+        if (!noiseGen) {
+            return;
         }
-        glEnd();
-    }
+
+        for (float yCo = 0.0; yCo < fbSize.y; yCo += 1.0) {
+            glBegin(GL_LINE_STRIP);
+            for (float xCo = 0.0; xCo < fbSize.x; xCo += 1.0) {
+                float xAddr = xCo / fbSize.x;
+                float yAddr = yCo / fbSize.y;
+
+                float colVal = noiseGen->getValue(xAddr, yAddr);
+                glColor3f(colVal, colVal, colVal);
+                glVertex3f(xCo, yCo, 0);
+
+            }
+            glEnd();
+        }
+    } catch (const std::string& ex) {
+		WARN("Caught exception: %s", ex);
+	} catch (...) {
+		WARN("Caught unknown exception");
+	}
+}
+
+NoiseDisplay::~NoiseDisplay() {
 
 }
