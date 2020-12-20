@@ -209,7 +209,7 @@ void NoiseDisplay::drawFramebuffer() {
             return;
         }
 
-        for (float yCo = 0.0; yCo < fbSize.y; yCo += 1.0) {
+        for (float yCo = 0.0; yCo <= fbSize.y; yCo += 1.0) {
             glBegin(GL_LINE_STRIP);
             for (float xCo = 0.0; xCo < fbSize.x; xCo += 1.0) {
                 float xAddr = xCo / fbSize.x;

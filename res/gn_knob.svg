@@ -13,7 +13,7 @@
    version="1.1"
    id="svg111794"
    inkscape:version="1.0.1 (3bc2e813f5, 2020-09-07)"
-   sodipodi:docname="gn_knob.svg">
+   sodipodi:docname="gn_knob2.svg">
   <defs
      id="defs111788" />
   <sodipodi:namedview
@@ -49,7 +49,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title />
+        <dc:title></dc:title>
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -58,17 +58,33 @@
      inkscape:groupmode="layer"
      id="layer1"
      transform="translate(-135.80716,-61.39592)">
-    <path
-       id="path841"
-       style="fill:#454545;fill-opacity:1;stroke-width:0.481185;stroke:#cccccc;stroke-opacity:0.47941172"
-       inkscape:transform-center-x="0.010090629"
-       inkscape:transform-center-y="-0.4829774"
-       d="m 143.89477,70.702175 -6.06386,0.03835 -1.9104,-5.755254 4.88326,-3.595288 4.92833,3.533242 z"
-       sodipodi:nodetypes="cccccc" />
-    <path
-       id="rect844"
-       style="fill:#000000;fill-opacity:1;stroke:#cccccc;stroke-width:0.231134;stroke-opacity:0.758824"
-       d="m 140.82717,60.650586 0.54335,6.223493 h -1.0867 z"
-       sodipodi:nodetypes="cccc" />
+    <rect
+       style="fill:#ececec;stroke-width:0.302312"
+       id="rect851"
+       width="7.3572984"
+       height="6.2254062"
+       x="137.2482"
+       y="64.303169" />
+    <rect
+       style="fill:#800000;stroke-width:0.302312"
+       id="rect832"
+       width="1.1588418"
+       height="9.3785343"
+       x="140.2935"
+       y="61.419544" />
+    <rect
+       style="fill:#1a1a1a;stroke-width:0.302312"
+       id="rect834"
+       width="3.2070334"
+       height="5.713356"
+       x="137.5177"
+       y="64.599617" />
+    <rect
+       style="fill:#333333;stroke-width:0.302312"
+       id="rect834-1"
+       width="3.2070277"
+       height="4.4197698"
+       x="141.19637"
+       y="65.381157" />
   </g>
 </svg>

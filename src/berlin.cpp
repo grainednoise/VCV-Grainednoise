@@ -73,9 +73,9 @@ struct Berlin : Module {
 struct GnoiseNormalKnob : RoundKnob {
 	GnoiseNormalKnob() {
 		if (pluginInstance) {
-			setSvg(APP->window->loadSvg(asset::plugin(pluginInstance, "res/gn_knob.svg")));
+			setSvg(APP->window->loadSvg(asset::plugin(pluginInstance, "res/bakelite1.svg")));
 		}
-		shadow->opacity = 0.0;
+		shadow->opacity = 0.1;
 	}
 };
 
@@ -91,7 +91,7 @@ struct GnPlusButton : app::SvgSwitch {
 
 struct BerlinWidget : ModuleWidget {
 	BerlinWidget(Berlin* module) {
-		WARN("Creating BERLIN widget %d", module);
+		// WARN("Creating BERLIN widget %d", module);
 		setModule(module);
 		setPanel(APP->window->loadSvg(asset::plugin(pluginInstance, "res/berlin.svg")));
 
@@ -102,7 +102,7 @@ struct BerlinWidget : ModuleWidget {
 
 		addParam(createParamCentered<GnoiseNormalKnob>(mm2px(Vec(9.154, 71.962)), module, Berlin::XSIZE_PARAM));
 		addParam(createParamCentered<GnoiseNormalKnob>(mm2px(Vec(25.725, 71.962)), module, Berlin::YSIZE_PARAM));
-		addParam(createParamCentered<GnPlusButton>(mm2px(Vec(19, 59)), module, Berlin::SEED_PARAM));
+		addParam(createParamCentered<GnPlusButton>(mm2px(Vec(17.5, 61.25)), module, Berlin::SEED_PARAM));
 		addParam(createParamCentered<GnoiseNormalKnob>(mm2px(Vec(9.154, 90.872)), module, Berlin::XSCALE_PARAM));
 		addParam(createParamCentered<GnoiseNormalKnob>(mm2px(Vec(25.725, 91.072)), module, Berlin::YSCALE_PARAM));
 
@@ -111,31 +111,25 @@ struct BerlinWidget : ModuleWidget {
 
 		addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(42.295, 109.781)), module, Berlin::MAINOUT_OUTPUT));
 
-		// mm2px(Vec(42.763, 42.763)) NoiseDisplay
-		//addChild(createWidget<Widget>(mm2px(Vec(4.143, 12.027))));
-
 		NoiseDisplay *ndisp = new NoiseDisplay;
 
 		if (module) {
 			ndisp->setNoiseGen(module->noiseGen);
 		}
-		// // ndisp->setNoiseGen(std::make_shared<Noise2D>());
-		ndisp->box.pos =  mm2px(Vec(4.143, 12.027));
+		ndisp->box.pos =  mm2px(Vec(4.143, 9.5));
 		ndisp->box.size = mm2px(Vec(42.763, 42.763));
 		addChild(ndisp);
-
 
 		//When displayed in the module browser, 'module' will be NULL
 		ParamQuantityModel *pq = module ? dynamic_cast<ParamQuantityModel *>(module->paramQuantities[Berlin::SEED_PARAM]) : NULL;
 
 		NumberWidget *seedText = new NumberWidget(pq);
-		seedText->box.pos = mm2px(Vec(23, 56));
-		seedText->box.size = mm2px(Vec(24, 6.7));
+		seedText->box.pos = mm2px(Vec(22.5, 58));
+		seedText->box.size = mm2px(Vec(26, 6.7));
 		seedText->color = NVGcolor{1.0, 1.0, 1.0, 1.0};
-		seedText->textOffset = Vec{0, 0};
+		seedText->textOffset = Vec(0, 0);
 		addChild(seedText);
 	}
-
 };
 
 
