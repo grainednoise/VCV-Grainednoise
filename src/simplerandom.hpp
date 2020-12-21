@@ -13,7 +13,5 @@ class SimpleRandom {
         static const float MAX_NEXT_FLOAT;
 
         uint_least64_t seed;
-    
         uint_least64_t next();
-
 };

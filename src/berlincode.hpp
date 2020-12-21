@@ -37,13 +37,10 @@ class Noise2D {
 class NoiseDisplay : public OpenGlWidget {
     public:
         virtual ~NoiseDisplay();
-        void setNoiseGen(Noise2D *noiseGen);
-        // void setNoiseGen(std::shared_ptr<Noise2D> noiseGen);
+        void setNoiseGen(std::shared_ptr<Noise2D> noiseGen);
         
 
     private:
-        Noise2D *noiseGen;
-        // std::shared_ptr<Noise2D> noiseGen;
-    
+        std::shared_ptr<Noise2D> noiseGen;
         void drawFramebuffer() override;
 };

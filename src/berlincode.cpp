@@ -177,8 +177,6 @@ float Noise2D::getLanczos2Value(float x, float y) {
     for (int dx = -1; dx <= 2; dx++) {
         float kernX = fastLanczsos2Kernel(fracX - dx);
         for (int dy = -1; dy <= 2; dy++) {
-            // accu += getArrayValue(indexX + dx, indexY + dy) * lanczos2Kernel(fracX - dx) * lanczos2Kernel(fracY - dy);
-            // accu += getArrayValue(indexX + dx, indexY + dy) * kernX * fastLanczsos2Kernel(fracY - dy);
             accu += getArrayValue(indexX + dx, indexY + dy) * kernX * yKernel4[dy + 1];
         }
     }
@@ -187,13 +185,10 @@ float Noise2D::getLanczos2Value(float x, float y) {
 }
 
 
-// void NoiseDisplay::setNoiseGen(std::shared_ptr<Noise2D> noiseGen) {
-//     this->noiseGen = noiseGen;
-// }
-
-void NoiseDisplay::setNoiseGen(Noise2D *noiseGen) {
+void NoiseDisplay::setNoiseGen(std::shared_ptr<Noise2D> noiseGen) {
     this->noiseGen = noiseGen;
 }
+
 
 void NoiseDisplay::drawFramebuffer() {
     try {

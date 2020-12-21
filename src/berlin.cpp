@@ -31,8 +31,7 @@ struct Berlin : Module {
 	float currentXScale = 0.0;
 	float currentYScale = 0.0;
 
-	// std::shared_ptr<Noise2D> noiseGen;
-	Noise2D *noiseGen;
+	std::shared_ptr<Noise2D> noiseGen;
 
 	Berlin() {
 		config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
@@ -41,8 +40,8 @@ struct Berlin : Module {
 		configParam<ParamQuantityModel>(SEED_PARAM, 1.f, 9999999.f, 1.f, "Random number seed");
 		configParam(XSCALE_PARAM, 0.f, 2.f, 1.f, "X-scale multiplies input");
 		configParam(YSCALE_PARAM, 0.f, 2.f, 1.f, "Y-scale multiplies input");
-		// noiseGen = std::make_shared<Noise2D>();
-		noiseGen = new Noise2D;
+ 	
+		noiseGen = std::make_shared<Noise2D>();
 	}
 
 	void process(const ProcessArgs& args) override {
@@ -82,7 +81,7 @@ struct GnoiseNormalKnob : RoundKnob {
 struct GnPlusButton : app::SvgSwitch {
 	GnPlusButton() {
 		momentary = false;
-		shadow->opacity = 0.0;
+		shadow->opacity = 0.05;
 		if (pluginInstance) {
 			addFrame(APP->window->loadSvg(asset::plugin(pluginInstance, "res/gn_btn_up.svg")));
 		}

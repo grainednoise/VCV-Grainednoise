@@ -13,8 +13,6 @@ void ParamQuantityModel::setValue(float value) {
     float newValue = getValue();
 
     if (oldValue != newValue) {
-        INFO(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Calling callbacks with %g", value);
-
         for (auto func : callbacks) {
             func(value);
         }
