@@ -8,8 +8,8 @@
   "authorEmail": "grainednoise@gmail.com",
   "authorUrl": "",
   "pluginUrl": "",
-  "manualUrl": "",
-  "sourceUrl": "",
+  "manualUrl": "https://github.com/grainednoise/VCV-Grainednoise",
+  "sourceUrl": "https://github.com/grainednoise/VCV-Grainednoise",
   "donateUrl": "",
   "changelogUrl": "",
   "modules": [
@@ -18,7 +18,7 @@
       "name": "Berlin",
       "description": "",
       "tags": [
-        "noise"
+        "noise", "random", "Perlin"
       ]
     }
   ]
