@@ -90,5 +90,9 @@ has been some fairly hefty optimization going on to get it to this point. More
 _is_ possible, but at the expense of code clarity and memory usage, so I'm
 calling it 'good enough' for now.
 
+## Licence
+
+The source code is released under the [MIT licence](LICENCE.txt).
+
 ## Credits
 The Berlin UI uses a font called [SchoonSquare](https://www.dafont.com/schoonsquare.font) available under the [SIL Open Font Licence](http://scripts.sil.org/OFL).
