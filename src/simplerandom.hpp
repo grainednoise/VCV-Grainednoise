@@ -4,6 +4,7 @@
 
 class SimpleRandom {
     public:
+        SimpleRandom();
         SimpleRandom(unsigned long seed);
         void setSeed(unsigned long seed);
         float float_uniform();  // Will generate a uniform value between 0.0 and 1.0

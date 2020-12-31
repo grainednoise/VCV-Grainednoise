@@ -3,7 +3,7 @@
 /*
   A very simple (to implement) random number generator based on the Linear congruential generator algorithm
   See: https://en.wikipedia.org/wiki/Linear_congruential_generator. While this article warns not just to
-  pick some of the number in the table therein (i.e. potentially repeating other peaple's mistake),
+  pick some of the number in the table therein (i.e. potentially repeating other people's mistake),
   I did so anyway, as none of it is critical in any way.
   
   Better choices may be had from:
@@ -13,6 +13,14 @@
 
 const uint_least64_t SimpleRandom::MAX_NEXT = UINT64_C(0xffffffff);
 const float SimpleRandom::MAX_NEXT_FLOAT = (float)SimpleRandom::MAX_NEXT;
+
+static unsigned long seedCounter = 0;
+
+SimpleRandom::SimpleRandom() {
+    // A very rough'n'ready way of seeding it, but better than nothing
+    unsigned long l = static_cast<unsigned long>(reinterpret_cast<long long>(this));
+    this->seed = l ^ ++seedCounter;
+}
 
 SimpleRandom::SimpleRandom(unsigned long seed) {
     this->seed = seed;

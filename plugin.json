@@ -16,9 +16,22 @@
     {
       "slug": "Berlin",
       "name": "Berlin",
-      "description": "",
+      "description": "A walk through random terrain",
       "tags": [
-        "noise", "random", "Perlin"
+        "noise",
+        "random",
+        "Perlin"
+      ]
+    },
+    {
+      "slug": "Nevada",
+      "name": "Nevada",
+      "description": "A cornucopia of random",
+      "tags": [
+        "VCO", 
+        "LFO",
+        "noise",
+        "random"
       ]
     }
   ]

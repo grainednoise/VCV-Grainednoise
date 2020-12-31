@@ -9,5 +9,7 @@ extern Plugin* pluginInstance;
 
 // Declare each Model, defined in each module source file
 extern Model* modelBerlin;
+extern Model* modelNevada;
+
 
 
